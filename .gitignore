@@ -5,3 +5,5 @@ __pycache__/
 pipeline.log
 .DS_Store
 TOKEN.rtf
+package/
+lambda.zip

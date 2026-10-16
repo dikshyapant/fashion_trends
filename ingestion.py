@@ -12,11 +12,17 @@ from db import get_connection
 from pytrends.request import TrendReq
 from serpapi import GoogleSearch
 
-logging.basicConfig(
-    filename="pipeline.log",
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s"
-)
+RUNNING_IN_LAMBDA = bool(os.getenv("AWS_LAMBDA_FUNCTION_NAME"))
+
+if RUNNING_IN_LAMBDA:
+    # Lambda can't write files here; its logs go to CloudWatch automatically
+    logging.getLogger().setLevel(logging.INFO)
+else:
+    logging.basicConfig(
+        filename="pipeline.log",
+        level=logging.INFO,
+        format="%(asctime)s - %(levelname)s - %(message)s"
+    )
 
 load_dotenv()
 
@@ -248,9 +254,23 @@ def save_products(products):
     logging.info(f"Saved {saved} products successfully")
 
 
-if __name__ == "__main__":
+def run_pipeline():
+    global RUN_TS
+    RUN_TS = datetime.now(timezone.utc)  # fresh timestamp for every run
+
     trending_keywords = get_trending_keywords()
     print(f"Trending this week: {trending_keywords}")
 
     products = fetch_products(trending_keywords)
     save_products(products)
+    return trending_keywords
+
+
+def lambda_handler(event, context):
+    """Entry point when this script runs on AWS Lambda."""
+    trending_keywords = run_pipeline()
+    return {"status": "ok", "trending_keywords": trending_keywords}
+
+
+if __name__ == "__main__":
+    run_pipeline()
