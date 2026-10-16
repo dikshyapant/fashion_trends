@@ -1,8 +1,9 @@
 name: Weekly Ingestion
 
 on:
-  schedule:
-    - cron: '0 9 * * 1,5'
+  # Scheduled runs moved to AWS Lambda + EventBridge (Mon & Fri 9:00 UTC)
+  # schedule:
+  #   - cron: '0 9 * * 1,5'
   workflow_dispatch:
 
 jobs:
@@ -19,4 +20,3 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           SERPAPI_KEY: ${{ secrets.SERPAPI_KEY }}
           RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
-
